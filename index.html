@@ -1,100 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-eval'; worker-src blob:; connect-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:;">
     <title>PDF Page Manipulator</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <h1 class="app-title">PDF Page Manipulator</h1>
-            <div class="header-actions">
-                <button class="icon-btn" id="helpBtn" aria-label="Help" title="Help">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="17" r="0.5" fill="currentColor"/>
-                    </svg>
-                </button>
-                <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="main-content">
-        <section class="upload-section" id="uploadSection">
-            <div class="upload-area">
-                <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <polyline points="17 8 12 3 7 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <line x1="12" y1="3" x2="12" y2="15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <h2 class="upload-title">Upload PDF File</h2>
-                <p class="upload-subtitle">Click to browse or drag and drop your PDF</p>
-                <input type="file" id="pdfInput" accept="application/pdf" class="file-input" aria-label="Upload PDF file">
-                <button class="btn-primary" id="uploadBtn">Choose File</button>
-            </div>
-        </section>
-
-        <section class="pages-section hidden" id="pagesSection">
-            <div class="pages-header">
-                <h2 class="section-title">Pages</h2>
-                <div class="pages-actions">
-                    <button class="btn-secondary" id="selectAllBtn">Select All</button>
-                    <button class="btn-secondary" id="deselectAllBtn">Deselect All</button>
-                    <button class="btn-danger" id="deleteSelectedBtn">Delete Selected</button>
-                    <button class="btn-primary" id="exportBtn">Export PDF</button>
-                </div>
-            </div>
-            <div class="pages-grid" id="pagesGrid"></div>
-        </section>
-
-        <div class="loading-overlay hidden" id="loadingOverlay">
-            <div class="spinner"></div>
-            <p class="loading-text">Processing...</p>
-        </div>
-    </main>
-
-    <!-- Help Modal -->
-    <div class="modal hidden" id="helpModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">User Guide</h3>
-                <button class="modal-close" id="closeHelpBtn" aria-label="Close">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <line x1="18" y1="6" x2="6" y2="18" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="6" y1="6" x2="18" y2="18" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <h4>How to Use PDF Page Manipulator</h4>
-                <ol>
-                    <li><strong>Upload:</strong> Click "Choose File" or drag and drop a PDF to begin</li>
-                    <li><strong>Rotate:</strong> Click the rotate button on any page card to rotate 90° clockwise</li>
-                    <li><strong>Delete:</strong> Select pages using checkboxes and click "Delete Selected"</li>
-                    <li><strong>Reorder:</strong> Drag and drop page cards to rearrange their order</li>
-                    <li><strong>Export:</strong> Click "Export PDF" to download your modified document</li>
-                </ol>
-                <h4>Features</h4>
-                <ul>
-                    <li>Rotate individual pages in 90° increments</li>
-                    <li>Delete single or multiple pages at once</li>
-                    <li>Drag and drop to reorder pages</li>
-                    <li>Select all/deselect all for bulk operations</li>
-                    <li>Real-time preview of all pages</li>
-                </ul>
-            </div>
-        </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" aria-live="polite" aria-busy="false">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Processing...</p>
     </div>
 
-    <script src="script.min.obf.js"></script>
+    <!-- Notification Toast -->
+    <div class="notification-toast" id="notificationToast" role="alert" aria-live="assertive"></div>
+
+    <!-- Drag Position Tooltip -->
+    <div class="drag-tooltip" id="dragTooltip" aria-live="polite">
+        <span class="tooltip-text">Moving to position <strong id="tooltipPosition">1</strong></span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="header-title">📄 PDF Page Manipulator</h1>
+                <div class="header-actions">
+                    <button class="btn-icon" id="helpBtn" aria-label="Open user guide" title="Help">
+                        ❓
+                    </button>
+                    <button class="btn-icon" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+                        🌙
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-card">
+                    <div class="upload-icon">📤</div>
+                    <h2 class="upload-title">Upload PDF File</h2>
+                    <p class="upload-description">Click to browse or drag and drop your PDF</p>
+                    <input type="file" id="pdfInput" accept="application/pdf" class="file-input" aria-label="Choose PDF file">
+                    <button class="btn-primary" id="uploadBtn">
+                        <span class="btn-text">Choose File</span>
+                    </button>
+                    <div class="upload-drop-zone" id="dropZone">
+                        <p>Drop PDF here</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pages Section -->
+            <section class="pages-section" id="pagesSection" style="display: none;">
+                <div class="pages-header">
+                    <h2 class="pages-title">Pages</h2>
+                    <div class="pages-actions">
+                        <button class="btn-secondary" id="selectAllBtn">
+                            <span class="btn-icon-text">✓</span>
+                            <span class="btn-text">Select All</span>
+                        </button>
+                        <button class="btn-secondary" id="deselectAllBtn">
+                            <span class="btn-icon-text">✗</span>
+                            <span class="btn-text">Deselect All</span>
+                        </button>
+                        <button class="btn-danger" id="deleteSelectedBtn">
+                            <span class="btn-icon-text">🗑️</span>
+                            <span class="btn-text">Delete Selected</span>
+                        </button>
+                        <button class="btn-primary" id="exportBtn">
+                            <span class="btn-icon-text">💾</span>
+                            <span class="btn-text">Export PDF</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="pages-grid" id="pagesGrid"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Help Modal -->
+    <dialog class="modal" id="helpModal" aria-labelledby="modalTitle" aria-describedby="modalDescription">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">📚 User Guide</h2>
+                <button class="btn-close" id="closeHelpBtn" aria-label="Close user guide">✕</button>
+            </div>
+            <div class="modal-body" id="modalDescription">
+                <h3 class="modal-section-title">How to Use PDF Page Manipulator</h3>
+
+                <div class="guide-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Upload</h4>
+                        <p>Click "Choose File" or drag and drop a PDF to begin</p>
+                    </div>
+                </div>
+
+                <div class="guide-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Rotate</h4>
+                        <p>Click the rotate button (🔄) on any page card to rotate 90° clockwise</p>
+                    </div>
+                </div>
+
+                <div class="guide-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Delete</h4>
+                        <p>Select pages using checkboxes and click "Delete Selected" or use the trash button</p>
+                    </div>
+                </div>
+
+                <div class="guide-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Reorder</h4>
+                        <p>Drag and drop page cards to rearrange their order. A tooltip will show the target position</p>
+                    </div>
+                </div>
+
+                <div class="guide-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h4>Export</h4>
+                        <p>Click "Export PDF" to download your modified document</p>
+                    </div>
+                </div>
+
+                <h3 class="modal-section-title">Features</h3>
+                <ul class="feature-list">
+                    <li>✓ Rotate individual pages in 90° increments</li>
+                    <li>✓ Delete single or multiple pages at once</li>
+                    <li>✓ Drag and drop to reorder pages with position indicator</li>
+                    <li>✓ Select all/deselect all for bulk operations</li>
+                    <li>✓ Real-time preview of all pages</li>
+                    <li>✓ Dark mode support</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="closeHelpBtnFooter">Got it!</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+    <!-- Application Script -->
+    <script src="script.js"></script>
 </body>
 </html>
